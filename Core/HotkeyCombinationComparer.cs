@@ -1,18 +1,16 @@
-﻿using System;
+﻿using GlobalHotKeys.Structs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GlobalHotKeys
+namespace GlobalHotKeys.Core
 {
     internal class HotkeyCombinationComparer : IEqualityComparer<HotkeyCombination>
     {
-        public bool Equals(HotkeyCombination x, HotkeyCombination y)
-        {
-            return x.IgnoreKeys == y.IgnoreKeys && x.Keys.SetEquals(y.Keys);
-        }
-
+        public bool Equals(HotkeyCombination x, HotkeyCombination y) => x.IgnoreKeys == y.IgnoreKeys && x.Keys.SetEquals(y.Keys);
+        
         public int GetHashCode(HotkeyCombination obj)
         {
             int hash = 17;
@@ -21,6 +19,7 @@ namespace GlobalHotKeys
                 hash = hash * 31 + key.GetHashCode();
 
             hash = hash * 31 + obj.IgnoreKeys.GetHashCode();
+
             return hash;
         }
     }

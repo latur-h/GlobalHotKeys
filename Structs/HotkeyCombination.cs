@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GlobalHotKeys
+namespace GlobalHotKeys.Structs
 {
     public readonly struct HotkeyCombination
     {
@@ -20,17 +20,6 @@ namespace GlobalHotKeys
         public bool Matches(HashSet<KeyCode> pressed)
         {
             return IgnoreKeys || Keys.IsSubsetOf(pressed);
-        }
-    }
-    public readonly struct Bind
-    {
-        public string Id { get; }
-        public HotkeyCombination Combination { get; }
-
-        public Bind(string id, params KeyCode[] keys)
-        {
-            Id = id;
-            Combination = new HotkeyCombination(false, keys);
         }
     }
 }

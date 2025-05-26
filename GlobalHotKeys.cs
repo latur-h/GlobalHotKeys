@@ -1,4 +1,6 @@
-﻿using System;
+﻿using GlobalHotKeys.Core;
+using GlobalHotKeys.Structs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GlobalHotKeys
 {
-    public class Manager : IDisposable
+    public class GlobalHotKeys : IDisposable
     {
         private readonly HookLifecycle _hookLifecycle;
         private readonly HotkeyRegistry _registry = new();
@@ -14,7 +16,7 @@ namespace GlobalHotKeys
 
         private readonly HashSet<KeyCode> _pressedInputs = new();
 
-        public Manager()
+        public GlobalHotKeys()
         {
             _hookLifecycle = new HookLifecycle(KeyboardProc, MouseProc);
         }
@@ -54,7 +56,6 @@ namespace GlobalHotKeys
 
             return Interop.NativeMethods.CallNextHookEx(_hookLifecycle.KeyboardHookId, nCode, wParam, lParam);
         }
-
         private IntPtr MouseProc(int nCode, IntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0)

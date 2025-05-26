@@ -1,10 +1,11 @@
-﻿using System;
+﻿using GlobalHotKeys.Structs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GlobalHotKeys
+namespace GlobalHotKeys.Core
 {
     internal class HotkeyRegistry
     {
@@ -22,7 +23,7 @@ namespace GlobalHotKeys
             _bindings[id] = combo;
             _actions[combo] = action;
         }
-        public void Register(Bind bind, Func<Task> action) => Register(bind.Id, bind.Combination, action);        
+        public void Register(Bind bind, Func<Task> action) => Register(bind.Id, bind.Combination, action);
 
         public void Unregister(string id)
         {
