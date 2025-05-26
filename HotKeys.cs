@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GlobalHotKeys
 {
-    public class GlobalHotKeys : IDisposable
+    public class HotKeys : IDisposable
     {
         private readonly HookLifecycle _hookLifecycle;
         private readonly HotkeyRegistry _registry = new();
@@ -16,7 +16,7 @@ namespace GlobalHotKeys
 
         private readonly HashSet<KeyCode> _pressedInputs = new();
 
-        public GlobalHotKeys()
+        public HotKeys()
         {
             _hookLifecycle = new HookLifecycle(KeyboardProc, MouseProc);
         }
