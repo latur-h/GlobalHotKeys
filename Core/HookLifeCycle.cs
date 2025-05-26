@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static GlobalHotKeys.Core.Interop;
 
@@ -13,16 +14,16 @@ namespace GlobalHotKeys.Core
         private readonly LowLevelProc _keyboardProc;
         private readonly LowLevelProc _mouseProc;
 
-        private nint _keyboardHookID = nint.Zero;
-        private nint _mouseHookID = nint.Zero;
+        private IntPtr _keyboardHookID = IntPtr.Zero;
+        private IntPtr _mouseHookID = IntPtr.Zero;
 
         private CancellationTokenSource? _cts;
         private Task? _hookTask;
 
         public bool IsRunning { get; private set; }
 
-        public nint KeyboardHookId => _keyboardHookID;
-        public nint MouseHookId => _mouseHookID;
+        public IntPtr KeyboardHookId => _keyboardHookID;
+        public IntPtr MouseHookId => _mouseHookID;
 
         public HookLifecycle(LowLevelProc keyboardCallback, LowLevelProc mouseCallback)
         {
@@ -75,20 +76,20 @@ namespace GlobalHotKeys.Core
 
         public void Dispose()
         {
-            if (_keyboardHookID != nint.Zero)
+            if (_keyboardHookID != IntPtr.Zero)
             {
                 NativeMethods.UnhookWindowsHookEx(_keyboardHookID);
-                _keyboardHookID = nint.Zero;
+                _keyboardHookID = IntPtr.Zero;
             }
 
-            if (_mouseHookID != nint.Zero)
+            if (_mouseHookID != IntPtr.Zero)
             {
                 NativeMethods.UnhookWindowsHookEx(_mouseHookID);
-                _mouseHookID = nint.Zero;
+                _mouseHookID = IntPtr.Zero;
             }
         }
 
-        private static nint SetHook(LowLevelProc proc, int hookType)
+        private static IntPtr SetHook(LowLevelProc proc, int hookType)
         {
             using var curProcess = Process.GetCurrentProcess();
             using var curModule = curProcess.MainModule!;

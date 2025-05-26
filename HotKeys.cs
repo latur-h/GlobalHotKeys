@@ -11,10 +11,10 @@ namespace GlobalHotKeys
     public class HotKeys : IDisposable
     {
         private readonly HookLifecycle _hookLifecycle;
-        private readonly HotkeyRegistry _registry = new();
-        private readonly Dictionary<string, ActiveCombination> _active = new();
+        private readonly HotkeyRegistry _registry = new HotkeyRegistry();
+        private readonly Dictionary<string, ActiveCombination> _active = new Dictionary<string, ActiveCombination>();
 
-        private readonly HashSet<KeyCode> _pressedInputs = new();
+        private readonly HashSet<KeyCode> _pressedInputs = new HashSet<KeyCode>();
 
         public HotKeys()
         {
@@ -105,7 +105,7 @@ namespace GlobalHotKeys
                 if (!_active.ContainsKey(key))
                 {
                     _active[key] = new ActiveCombination(_pressedInputs);
-                    await action();
+                    await Task.Run(() => action());
 
                     _active[key].IsFinished = true;
                 }

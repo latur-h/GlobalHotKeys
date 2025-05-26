@@ -9,8 +9,8 @@ namespace GlobalHotKeys.Core
 {
     internal class HotkeyRegistry
     {
-        private readonly Dictionary<string, HotkeyCombination> _bindings = new();
-        private readonly Dictionary<HotkeyCombination, Func<Task>> _actions = new(new HotkeyCombinationComparer());
+        private readonly Dictionary<string, HotkeyCombination> _bindings = new Dictionary<string, HotkeyCombination>();
+        private readonly Dictionary<HotkeyCombination, Func<Task>> _actions = new Dictionary<HotkeyCombination, Func<Task>>(new HotkeyCombinationComparer());
 
         public void Register(string id, HotkeyCombination combo, Func<Task> action)
         {

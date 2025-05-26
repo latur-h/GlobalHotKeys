@@ -12,17 +12,17 @@ namespace GlobalHotKeys.Core
         internal static class NativeMethods
         {
             [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-            internal static extern nint SetWindowsHookEx(int idHook, LowLevelProc lpfn, nint hMod, uint dwThreadId);
+            internal static extern IntPtr SetWindowsHookEx(int idHook, LowLevelProc lpfn, IntPtr hMod, uint dwThreadId);
 
             [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool UnhookWindowsHookEx(nint hhk);
+            internal static extern bool UnhookWindowsHookEx(IntPtr hhk);
 
             [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-            internal static extern nint CallNextHookEx(nint hhk, int nCode, nint wParam, nint lParam);
+            internal static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
             [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-            internal static extern nint GetModuleHandle(string lpModuleName);
+            internal static extern IntPtr GetModuleHandle(string lpModuleName);
         }
         internal static class HookTypes
         {
@@ -60,9 +60,9 @@ namespace GlobalHotKeys.Core
             public uint mouseData;
             public uint flags;
             public uint time;
-            public nint dwExtraInfo;
+            public IntPtr dwExtraInfo;
         }
 
-        internal delegate nint LowLevelProc(int nCode, nint wParam, nint lParam);
+        internal delegate IntPtr LowLevelProc(int nCode, IntPtr wParam, IntPtr lParam);
     }
 }
