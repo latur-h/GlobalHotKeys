@@ -41,7 +41,7 @@ dotnet add package GlobalHotKeys
 using GlobalHotKeys;
 using GlobalHotKeys.Structs;
 
-var manager = new GlobalHotKeys.GlobalHotKeys();
+var manager = new GlobalHotKeys.HotKeys();
 
 manager.Register(new Bind("screenshot", KeyCode.Control, KeyCode.F5), async () =>
 {
