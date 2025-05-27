@@ -34,7 +34,7 @@ A **universal C# library** for handling **global hotkeys** using **keyboard and 
 ## 🚀 Quick Start
 
 ```bash
-dotnet add package GlobalHotKeys
+dotnet add package GlobalHotKeys.Latur
 ```
 
 ```csharp

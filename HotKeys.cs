@@ -21,16 +21,53 @@ namespace GlobalHotKeys
             _hookLifecycle = new HookLifecycle(KeyboardProc, MouseProc);
         }
 
+        /// <summary>
+        /// Starts the global keyboard and mouse hook.
+        /// Hotkeys will begin triggering after this is called.
+        /// </summary>
         public void Start() => _hookLifecycle.Start();
+        /// <summary>
+        /// Stops the global keyboard and mouse hook.
+        /// No hotkeys will be triggered after this is called.
+        /// </summary>
         public void Stop() => _hookLifecycle.Stop();
 
+        /// <summary>
+        /// Registers a new hotkey combination with a unique identifier and action.
+        /// </summary>
+        /// <param name="id">A unique string identifier for the hotkey binding.</param>
+        /// <param name="combo">The key combination to associate with the action.</param>
+        /// <param name="action">The async function to execute when the combination is pressed.</param>
         public void Register(string id, HotkeyCombination combo, Func<Task> action) => _registry.Register(id, combo, action);
+        /// <summary>
+        /// Registers a new hotkey binding using a preconfigured <see cref="Bind"/> object.
+        /// </summary>
+        /// <param name="bind">The bind object that includes an ID and key combination.</param>
+        /// <param name="action">The async function to execute when the combination is pressed.</param>
         public void Register(Bind bind, Func<Task> action) => _registry.Register(bind, action);
 
+        /// <summary>
+        /// Changes an existing hotkey combination using the specified identifier.
+        /// </summary>
+        /// <param name="id">The ID of the binding to modify.</param>
+        /// <param name="newCombo">The new key combination to assign.</param>
         public void Change(string id, HotkeyCombination newCombo) => _registry.Change(id, newCombo);
+        /// <summary>
+        /// Changes an existing hotkey combination using a <see cref="Bind"/> instance.
+        /// </summary>
+        /// <param name="bind">The existing binding to modify.</param>
+        /// <param name="newCombo">The new key combination to assign.</param>
         public void Change(Bind bind, HotkeyCombination newCombo) => _registry.Change(bind, newCombo);
 
+        /// <summary>
+        /// Unregisters a hotkey binding using its unique identifier.
+        /// </summary>
+        /// <param name="id">The ID of the binding to remove.</param>
         public void Unregister(string id) => _registry.Unregister(id);
+        /// <summary>
+        /// Unregisters a hotkey binding using a <see cref="Bind"/> object.
+        /// </summary>
+        /// <param name="bind">The bind object that identifies the combination to remove.</param>
         public void Unregister(Bind bind) => _registry.Unregister(bind);
 
         private IntPtr KeyboardProc(int nCode, IntPtr wParam, IntPtr lParam)
