@@ -26,10 +26,7 @@ namespace GlobalHotKeys
         /// Sets up the low-level keyboard and mouse hook callbacks,
         /// but does not start listening until <see cref="Start"/> is called.
         /// </summary>
-        public HotKeys()
-        {
-            _hookLifecycle = new HookLifecycle(KeyboardProc, MouseProc);
-        }
+        public HotKeys() => _hookLifecycle = new HookLifecycle(KeyboardProc, MouseProc);
 
         /// <summary>
         /// Starts the global keyboard and mouse hook.
@@ -159,6 +156,7 @@ namespace GlobalHotKeys
 
             return Interop.NativeMethods.CallNextHookEx(_hookLifecycle.MouseHookId, nCode, wParam, lParam);
         }
+        
         /// <summary>
         /// Evaluates all registered hotkeys against currently pressed input,
         /// and triggers any matching actions asynchronously.
@@ -183,14 +181,14 @@ namespace GlobalHotKeys
                 {
                     string key = i.Id;
 
-                    if (!_active.ContainsKey(key))
+                    if (!_active.Values.Any(x => x.PressedInputs.SetEquals(i.Combination.Keys)))
                     {
-                        _active[key] = new ActiveCombination(i.Combination.Keys);
+                        _active[i.Id] = new ActiveCombination(new HashSet<KeyCode>(i.Combination.Keys));
 
                         var task = Task.Run(async () =>
                         {
                             await i.Action();
-                            _active[key].IsFinished = true;
+                            _active[i.Id].IsFinished = true;
                         });
 
                         tasks.Add(task);
@@ -200,12 +198,12 @@ namespace GlobalHotKeys
                 await Task.WhenAll(tasks);
             }
         }
-
         private bool TryGetUpVariant(KeyCode key, out KeyCode upKey)
         {
             upKey = (KeyCode)((ushort)key + 0x1000);
             return Enum.IsDefined(typeof(KeyCode), upKey);
         }
+        
         /// <summary>
         /// Handles logic when a key is released, including checking for updated combinations
         /// and cleaning up any no-longer-valid active hotkeys.
@@ -220,16 +218,18 @@ namespace GlobalHotKeys
             foreach (var kvp in _active)
             {
                 var id = kvp.Key;
-                var originalCombo = kvp.Value.PressedInputs;
+                var combo = kvp.Value.PressedInputs;
 
-                if (!originalCombo.SetEquals(_pressedInputs))
-                {
+                if (combo.Contains(released) || combo.Contains(GetUpVariant(released)))
                     toRemove.Add(id);
-                }
             }
 
             foreach (var id in toRemove)
                 _active.Remove(id);
+        }
+        private KeyCode GetUpVariant(KeyCode key)
+        {
+            return (KeyCode)((ushort)key + 0x1000);
         }
 
         /// <summary>
