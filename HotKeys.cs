@@ -143,23 +143,37 @@ namespace GlobalHotKeys
             return Interop.NativeMethods.CallNextHookEx(_hookLifecycle.MouseHookId, nCode, wParam, lParam);
         }
 
-        private async Task CheckHotkeys()
+        private async Task CheckHotkeys(bool isKeyUp = false, KeyCode? releasedKey = null)
         {
-            if (_registry.TryGetAction(_pressedInputs, out var action))
+            var checkSet = new HashSet<KeyCode>(_pressedInputs);
+
+            if (isKeyUp && releasedKey.HasValue)
+            {
+                if (TryGetUpVariant(releasedKey.Value, out var upKey))
+                    checkSet.Add(upKey);
+            }
+
+            if (_registry.TryGetAction(checkSet, out var action))
             {
                 string key = action!.Method.Name;
                 if (!_active.ContainsKey(key))
                 {
                     _active[key] = new ActiveCombination(_pressedInputs);
-                    await Task.Run(() => action());
-
+                    await Task.Run(action);
                     _active[key].IsFinished = true;
                 }
             }
         }
 
+        private bool TryGetUpVariant(KeyCode key, out KeyCode upKey)
+        {
+            upKey = (KeyCode)((ushort)key + 0x1000);
+            return Enum.IsDefined(typeof(KeyCode), upKey);
+        }
         private void OnRelease(KeyCode released)
         {
+            _ = CheckHotkeys(isKeyUp: true, releasedKey: released);
+
             var toRemove = new List<string>();
 
             foreach (var kvp in _active)
@@ -175,7 +189,7 @@ namespace GlobalHotKeys
             foreach (var id in toRemove)
                 _active.Remove(id);
         }
-        
+
         /// <summary>
         /// Disposes the hotkey manager by stopping hooks and clearing internal state.
         /// Call this when the application is shutting down or the manager is no longer needed.
