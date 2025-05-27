@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace GlobalHotKeys
 {
+    /// <summary>
+    /// A universal hotkey manager for registering and handling global keyboard and mouse combinations.
+    /// Uses low-level Win32 hooks to detect input across the system.
+    /// </summary>
     public class HotKeys : IDisposable
     {
         private readonly HookLifecycle _hookLifecycle;
@@ -16,6 +20,11 @@ namespace GlobalHotKeys
 
         private readonly HashSet<KeyCode> _pressedInputs = new HashSet<KeyCode>();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HotKeys"/> class.
+        /// Sets up the low-level keyboard and mouse hook callbacks,
+        /// but does not start listening until <see cref="Start"/> is called.
+        /// </summary>
         public HotKeys()
         {
             _hookLifecycle = new HookLifecycle(KeyboardProc, MouseProc);
@@ -166,7 +175,11 @@ namespace GlobalHotKeys
             foreach (var id in toRemove)
                 _active.Remove(id);
         }
-
+        
+        /// <summary>
+        /// Disposes the hotkey manager by stopping hooks and clearing internal state.
+        /// Call this when the application is shutting down or the manager is no longer needed.
+        /// </summary>
         public void Dispose()
         {
             Stop();
