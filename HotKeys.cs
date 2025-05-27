@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GlobalHotKeys
@@ -47,13 +48,24 @@ namespace GlobalHotKeys
         /// <param name="id">A unique string identifier for the hotkey binding.</param>
         /// <param name="combo">The key combination to associate with the action.</param>
         /// <param name="action">The async function to execute when the combination is pressed.</param>
-        public void Register(string id, HotkeyCombination combo, Func<Task> action) => _registry.Register(id, combo, action);
+        public void Register(string id, HotkeyCombination combo, Func<Task> action) 
+        {
+            if(_active.TryGetValue(id, out var value))            
+                _active.Remove(id);
+
+            _registry.Register(id, combo, action);
+        }
         /// <summary>
         /// Registers a new hotkey binding using a preconfigured <see cref="Bind"/> object.
         /// </summary>
         /// <param name="bind">The bind object that includes an ID and key combination.</param>
-        /// <param name="action">The async function to execute when the combination is pressed.</param>
-        public void Register(Bind bind, Func<Task> action) => _registry.Register(bind, action);
+        public void Register(Bind bind)
+        {
+            if (_active.TryGetValue(bind.Id, out var value))
+                _active.Remove(bind.Id);
+
+            _registry.Register(bind);
+        }
 
         /// <summary>
         /// Changes an existing hotkey combination using the specified identifier.
@@ -62,11 +74,16 @@ namespace GlobalHotKeys
         /// <param name="newCombo">The new key combination to assign.</param>
         public void Change(string id, HotkeyCombination newCombo) => _registry.Change(id, newCombo);
         /// <summary>
+        /// Changes an existing hotkey combination using the specified identifier.
+        /// </summary>
+        /// <param name="id">The ID of the binding to modify.</param>
+        /// <param name="action">The new key combination to assign.</param>
+        public void Change(string id, Func<Task> action) => _registry.Change(id, action);
+        /// <summary>
         /// Changes an existing hotkey combination using a <see cref="Bind"/> instance.
         /// </summary>
         /// <param name="bind">The existing binding to modify.</param>
-        /// <param name="newCombo">The new key combination to assign.</param>
-        public void Change(Bind bind, HotkeyCombination newCombo) => _registry.Change(bind, newCombo);
+        public void Change(Bind bind) => _registry.Change(bind);
 
         /// <summary>
         /// Unregisters a hotkey binding using its unique identifier.
@@ -142,7 +159,12 @@ namespace GlobalHotKeys
 
             return Interop.NativeMethods.CallNextHookEx(_hookLifecycle.MouseHookId, nCode, wParam, lParam);
         }
-
+        /// <summary>
+        /// Evaluates all registered hotkeys against currently pressed input,
+        /// and triggers any matching actions asynchronously.
+        /// </summary>
+        /// <param name="isKeyUp">Whether this is called on a key release event.</param>
+        /// <param name="releasedKey">The key that was just released (optional).</param>
         private async Task CheckHotkeys(bool isKeyUp = false, KeyCode? releasedKey = null)
         {
             var checkSet = new HashSet<KeyCode>(_pressedInputs);
@@ -155,13 +177,27 @@ namespace GlobalHotKeys
 
             if (_registry.TryGetAction(checkSet, out var action))
             {
-                string key = action!.Method.Name;
-                if (!_active.ContainsKey(key))
+                var tasks = new List<Task>();
+
+                foreach (var i in action!)
                 {
-                    _active[key] = new ActiveCombination(_pressedInputs);
-                    await Task.Run(action);
-                    _active[key].IsFinished = true;
+                    string key = i.Id;
+
+                    if (!_active.ContainsKey(key))
+                    {
+                        _active[key] = new ActiveCombination(i.Combination.Keys);
+
+                        var task = Task.Run(async () =>
+                        {
+                            await i.Action();
+                            _active[key].IsFinished = true;
+                        });
+
+                        tasks.Add(task);
+                    }
                 }
+
+                await Task.WhenAll(tasks);
             }
         }
 
@@ -170,6 +206,11 @@ namespace GlobalHotKeys
             upKey = (KeyCode)((ushort)key + 0x1000);
             return Enum.IsDefined(typeof(KeyCode), upKey);
         }
+        /// <summary>
+        /// Handles logic when a key is released, including checking for updated combinations
+        /// and cleaning up any no-longer-valid active hotkeys.
+        /// </summary>
+        /// <param name="released">The key that was released.</param>
         private void OnRelease(KeyCode released)
         {
             _ = CheckHotkeys(isKeyUp: true, releasedKey: released);
@@ -178,11 +219,12 @@ namespace GlobalHotKeys
 
             foreach (var kvp in _active)
             {
-                if (kvp.Value.PressedInputs.Contains(released))
+                var id = kvp.Key;
+                var originalCombo = kvp.Value.PressedInputs;
+
+                if (!originalCombo.SetEquals(_pressedInputs))
                 {
-                    kvp.Value.IsReleased = true;
-                    kvp.Value.IsExecuting = false;
-                    toRemove.Add(kvp.Key);
+                    toRemove.Add(id);
                 }
             }
 

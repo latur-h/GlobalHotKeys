@@ -3,7 +3,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>8.0</LangVersion>
 		<PackageId>GlobalHotKeys.Latur</PackageId>
-		<Version>1.0.3</Version>
+		<Version>1.0.4</Version>
 		<Authors>Latur</Authors>
 		<Description>A universal hotkey manager for C# with keyboard and mouse combinations.</Description>
 		<RepositoryUrl>https://github.com/latur-h/GlobalHotKeys</RepositoryUrl>
